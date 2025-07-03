@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import * as MediaLibrary from "expo-media-library";
 
 const App = () => {
   const [facing, setFacing] = useState<CameraType>("back");
@@ -16,11 +17,26 @@ const App = () => {
 
   const cameraRef = useRef<CameraView>(null);
 
-  async function tirarFoto() {
-    if (!cameraRef.current) return;
+  const salvarFoto = async (fotoUri: string) => {
+    const { status } = await MediaLibrary.requestPermissionsAsync();
 
-    const foto = await cameraRef.current.takePictureAsync();
+    if (status === 'granted') {
+      await MediaLibrary.createAssetAsync(fotoUri);
+      alert('Foto salva com sucesso!');
+    } else {
+      alert('Permissão negada para salvar');
+    }
+  }
+
+  const tirarFoto = async () => {
+    if (!cameraRef.current) return;
+    
+    const foto = await cameraRef.current.takePictureAsync({
+      base64: true
+    });
     setFoto(foto.uri);
+    await salvarFoto(foto.uri);
+    // Use foto.base64 se precisar do conteúdo em base64
   }
 
   if (!permission || !permission.granted) {
